@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "a2rchi.fullname" . }}-chromadb
+  name: {{ include "a2rchi.fullname" . }}-chromadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "a2rchi.fullname" . }}-chromadb      
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+      labels:
+        app: {{ include "a2rchi.fullname" . }}-chromadb
+    spec:
+      containers:
+        - image: {{ .Values.chromadb.image }}
+          imagePullPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://0.0.0.0:8000/api/v1/heartbeat
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 10
+          name: chromadb-test
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /chroma/chroma
+              name: chromadb
+      restartPolicy: Always
+      volumes:
+        - name: chromadb
+          persistentVolumeClaim:
+            claimName: {{ include "a2rchi.fullname" . }}-chromadb

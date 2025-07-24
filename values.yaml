@@ -1,0 +1,85 @@
+chat:
+  port: 7024
+  externalPort: 7024
+
+  # add chat image that a2rchi built
+  image: localregistry.foo.edu/a2rchi-chat:latest
+chromadb:
+  # add chat image that a2rchi built  
+  image: localregistry.foo.edu/chromadb:latest
+  
+ingress:
+  enabled: true
+
+  # add external hostname
+  hostname: a2rchi.foo.edu
+  tls:
+    enabled: true
+    # TLS for above hostname
+    secretName: a2rchi-foo-edu-els
+postgresql:
+  global:
+    security:
+      allowInsecureImages: true
+  auth:
+    existingSecret: "{{ .Release.Name }}-postgresql-password"
+    username: a2rchi
+    database: a2rchi
+  enabled: true
+  primary:
+    initdb:
+      scriptsConfigMap: "{{ .Release.Name }}-init-sql"
+    persistence:
+      enabled: false
+    podSecurityContext:
+      enabled: false
+    containerSecurityContext:
+      enabled: false
+  volumePermissions:
+    containerSecurityContext:
+      runAsUser: auto  
+
+prompt:
+  main: |
+    You are a conversational chatbot named A2rchi who helps people navigate a computing cluster named SubMIT.
+    You will be provided context to help you answer their questions. Using your Linux and computing knowledge,
+    answer the question at the end. Unless otherwise indicated, assume the users are not well versed in
+    computing. Please do not assume that SubMIT machines have anything installed on top of native Linux except
+    if the context mentions it. If you don't know, say "I don't know", if you need to ask a follow up question, please do.
+
+    Context: {context}
+    Question: {question}
+    
+    Helpful Answer:
+    
+
+  condense: |
+    Given the following conversation between you (the AI named A2rchi), a human user who needs help, and an expert, and a follow up question,
+    rephrase the follow up question to be a standalone question, in its original language.
+    
+    Chat History:
+    {chat_history}
+    Follow Up Input: {question}
+    Standalone question:
+
+weblists:
+  submit.list:
+    - https://submit.mit.edu
+    - https://submit.mit.edu/?page_id=6
+    - https://submit.mit.edu/?page_id=7
+    - https://submit.mit.edu/?page_id=8
+    - https://submit.mit.edu/?page_id=73
+    - https://submit.mit.edu/submit-users-guide/backup.html
+    - https://submit.mit.edu/submit-users-guide/gpu.html
+    - https://submit.mit.edu/submit-users-guide/index.html
+    - https://submit.mit.edu/submit-users-guide/intro.html
+    - https://submit.mit.edu/submit-users-guide/monit.html
+    - https://submit.mit.edu/submit-users-guide/program.html
+    - https://submit.mit.edu/submit-users-guide/running.html
+    - https://submit.mit.edu/submit-users-guide/starting.html
+    - https://submit.mit.edu/submit-users-guide/storage.html
+    - https://submit.mit.edu/submit-users-guide/working.html
+  miscellanea.list:
+    - https://people.csail.mit.edu/kraska
+    - https://physics.mit.edu/faculty/christoph-paus
+    

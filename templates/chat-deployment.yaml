@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "a2rchi.fullname" . }}-chat
+  name:  {{ include "a2rchi.fullname" . }}-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: {{ include "a2rchi.fullname" . }}-chat
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: {{ include "a2rchi.fullname" . }}-chat
+    spec:
+      tolerations:
+        - key: "gpu"
+          value: "true"
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: {{ include "a2rchi.fullname" . }}-chat
+          env:
+            - name: OPENAI_API_KEY_FILE
+              value: /secrets/openai-api-key
+            - name: POSTGRES_PASSWORD_FILE
+              value: /secrets/postgres-password
+            - name: HOME
+              value: /home/chat
+          image: {{ .Values.chat.image }}
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              path: /terms # switch to /health at some point
+              port: {{ .Values.chat.port }}
+            initialDelaySeconds: 900
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /terms  # switch to /health at some point
+              port: {{ .Values.chat.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          resources:
+            limits:
+              nvidia.com/mig-4g.40gb: "1"
+            requests:
+              nvidia.com/mig-4g.40gb: "1"
+          
+          ports:
+            - containerPort: {{ .Values.chat.port }}
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /secrets
+              name: secrets
+            - mountPath: /root/data
+              name: chat-data
+            - mountPath: /root/models
+              name: chat-models
+            - mountPath: /home/chat
+              name: chat-home
+            - mountPath: /root/A2rchi/config.yaml
+              name: chat-config
+              subPath: config.yaml
+            - mountPath: /root/A2rchi/main.prompt
+              name: chat-prompts
+              subPath: main.prompt
+            - mountPath: /root/A2rchi/condense.prompt
+              name: chat-prompts
+              subPath: condense.prompt
+            - name: weblists
+              mountPath: /root/A2rchi/weblists
+      restartPolicy: Always
+      volumes:
+        - name: secrets
+          projected:
+            sources:
+              - secret:
+                  name: openai-api-key
+              - secret:
+                  name: "{{ .Release.Name }}-postgresql-password"
+        - name: chat-data
+          persistentVolumeClaim:
+            claimName: {{ include "a2rchi.fullname" . }}-chat
+        - name: chat-models
+          persistentVolumeClaim:
+            claimName: {{ include "a2rchi.fullname" . }}-chat-models
+        - name: chat-home
+          persistentVolumeClaim:
+            claimName: {{ include "a2rchi.fullname" . }}-chat-home
+          
+        - name: chat-config
+          configMap:
+            items:
+              - key: config.yaml
+                path: config.yaml
+            name: {{ include "a2rchi.fullname" . }}-chat-config
+
+        - name: chat-prompts
+          configMap:
+            items:
+              - key: main.prompt
+                path: main.prompt
+              - key: condense.prompt
+                path: condense.prompt
+            name: {{ include "a2rchi.fullname" . }}-chat-prompts
+        - name: weblists
+          configMap:
+            name: {{ include "a2rchi.fullname" . }}-weblists
