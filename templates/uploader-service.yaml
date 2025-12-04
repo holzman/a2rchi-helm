@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "a2rchi.labels" . | nindent 4 }}
+  name: {{ include "a2rchi.fullname" . }}-uploader
+spec:
+  ports:
+    - name: uploader-port
+      port: {{ .Values.uploader.externalPort }}
+      targetPort: {{ .Values.uploader.port }}
+  selector:
+    service: {{ include "a2rchi.fullname" . }}-uploader

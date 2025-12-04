@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled }}
+{{- if .Values.chat.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -9,7 +9,7 @@ metadata:
   name: {{ include "a2rchi.fullname" . }}-chat
 spec:
   rules:
-  - host: {{ .Values.ingress.hostname }}
+  - host: {{ .Values.chat.ingress.hostname }}
     http:
       paths:
       - backend:
@@ -18,10 +18,10 @@ spec:
             port: 
               name: chat-port
         pathType: ImplementationSpecific
-  {{- if .Values.ingress.tls.enabled }}            
+  {{- if .Values.chat.ingress.tls.enabled }}
   tls:
   - hosts:
-    - {{ .Values.ingress.hostname }}
-    secretName: {{ .Values.ingress.tls.secretName }}
+    - {{ .Values.chat.ingress.hostname }}
+    secretName: {{ .Values.chat.ingress.tls.secretName }}
   {{- end }}
 {{- end }}

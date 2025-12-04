@@ -2,6 +2,7 @@ apiVersion: v1
 data:
   config.yaml: |
     name: bare_minimum_configuration
+    verbosity: 3
 
     global:
       TRAINED_ON: SubMIT and the people who started A2rchi
@@ -61,93 +62,27 @@ data:
         GRADING_ANALYSIS_PROMPT: ""
         GRADING_FINAL_GRADE_PROMPT: ""
       chain:
-        MODEL_NAME: HuggingFaceOpenLLM
-        CONDENSE_MODEL_NAME: HuggingFaceOpenLLM
-        IMAGE_PROCESSING_MODEL_NAME: null
-        GRADING_SUMMARY_MODEL_NAME: null
-        GRADING_ANALYSIS_MODEL_NAME: null
-        GRADING_FINAL_GRADE_MODEL_NAME: null
+        MODEL_NAME: OllamaInterface
+        CONDENSE_MODEL_NAME: OllamaInterface
+        SUMMARY_MODEL_NAME: OllamaInterface
         MODEL_CLASS_MAP:
-          AnthropicLLM:
-            class: AnthropicLLM
+          OllamaInterface:
             kwargs:
-              model_name: claude-3-opus-20240229
-              temperature: 1
-          OpenAIGPT4:
-            class: OpenAILLM
-            kwargs:
-              model_name: gpt-4
-              temperature: 1
-          OpenAIGPT35:
-            class: OpenAILLM
-            kwargs:
-              model_name: gpt-3.5-turbo
-              temperature: 1
-          DumbLLM:
-            class: DumbLLM
-            kwargs:
-              sleep_time_mean: 3
-              filler: null
-          LlamaLLM:
-            class: LlamaLLM
-            kwargs:
-              base_model: meta-llama/Llama-2-7b-chat-hf
-              peft_model: null
-              enable_salesforce_content_safety: False
-              quantization: True
-              max_new_tokens: 4096
-              seed: null
-              do_sample: True
-              min_length: null
-              use_cache: True
-              top_p: 0.9
-              temperature: 0.6
-              top_k: 50
-              repetition_penalty: 1.0
-              length_penalty: 1
-              max_padding_length: null
-          HuggingFaceOpenLLM:
-            class: HuggingFaceOpenLLM
-            kwargs:
-              base_model: Qwen/Qwen2.5-7B-Instruct-1M
-              peft_model: null
-              enable_salesforce_content_safety: False
-              quantization: True
-              max_new_tokens: 4096
-              seed: null
-              do_sample: True
-              min_length: null
-              use_cache: True
-              top_p: 0.9
-              temperature: 0.6
-              top_k: 50
-              repetition_penalty: 1.0
-              length_penalty: 1
-              max_padding_length: null
-          HuggingFaceImageLLM:
-            class: HuggingFaceImageLLM
-            kwargs:
-              base_model: Qwen/Qwen2.5-VL-7B-Instruct
-              quantization: True
-              min_pixels: 175616
-              max_pixels: 1003520
-              max_new_tokens: 4096
-              seed: null
-              do_sample: False
-              min_length: null
-              use_cache: True
-              top_k: 50
-              repetition_penalty: 1.0
-              length_penalty: 1
-        chain_update_time: 10
+              base_model: "gemma3:latest"
+              url: {{ .Values.ollama.url }}
 
     utils:
+      redmine:
+        redmine_update_time: 10
+        answer_tag: 'blah'
       postgres:
         port: 5432
         user: a2rchi
         database: {{ .Values.postgresql.auth.database }}
         host: {{ .Release.Name }}-postgresql
       data_manager:
+        stemming:
+          ENABLED: false
         CHUNK_SIZE: 1000
         CHUNK_OVERLAP: 0
         use_HTTP_chromadb_client: True
@@ -157,14 +92,11 @@ data:
         collection_name: collection_test
         reset_collection: True
         num_documents_to_retrieve: 5
+        distance_metric: 'cosine'
       embeddings:
         EMBEDDING_NAME: HuggingFaceEmbeddings
+        query_embedding_instructions: null
         EMBEDDING_CLASS_MAP:
-          OpenAIEmbeddings:
-            class: OpenAIEmbeddings
-            kwargs:
-              model: text-embedding-3-small
-            similarity_score_reference: 10
           HuggingFaceEmbeddings:
             class: HuggingFaceEmbeddings
             kwargs:
@@ -210,3 +142,4 @@ metadata:
   annotations:
     use-subpath: "true"
   name: {{ include "a2rchi.fullname" . }}-chat-config
+

@@ -78,7 +78,7 @@ spec:
           projected:
             sources:
               - secret:
-                  name: openai-api-key
+                  name: {{ include "a2rchi.fullname" . }}-openai-api-key
               - secret:
                   name: "{{ .Release.Name }}-postgresql-password"
         - name: chat-data

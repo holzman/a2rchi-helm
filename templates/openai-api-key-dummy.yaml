@@ -1,7 +1,7 @@
 apiVersion: v1
 data:
-  openai-api-key: bm90LWEtcGFzc3dvcmQK
+  openai-api-key: {{ .Values.openaiApiKey | b64enc }}
 kind: Secret
 metadata:
-  name: openai-api-key
+  name: {{ include "a2rchi.fullname" . }}-openai-api-key
 type: Opaque

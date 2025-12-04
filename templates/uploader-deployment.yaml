@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "a2rchi.fullname" . }}-uploader
+  name:  {{ include "a2rchi.fullname" . }}-uploader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: {{ include "a2rchi.fullname" . }}-uploader
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        service: {{ include "a2rchi.fullname" . }}-uploader
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: {{ include "a2rchi.fullname" . }}-uploader
+          env:
+            - name: FLASK_UPLOADER_APP_SECRET_KEY_FILE
+              value: /secrets/uploader-flask-secret
+          image: {{ .Values.uploader.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.uploader.port }}
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /root/A2rchi/config.yaml
+              name: config
+              subPath: config.yaml
+            - name: uploader-flask-secret
+              mountPath: /secrets
+            - mountPath: /root/data
+              name: chat-data
+            - mountPath: /root/.accounts
+              name: accounts
+      volumes:
+        - name: config
+          configMap:
+            items:
+              - key: config.yaml
+                path: config.yaml
+            name: {{ include "a2rchi.fullname" . }}-chat-config
+        - name: uploader-flask-secret
+          secret:
+            secretName: {{ include "a2rchi.fullname" . }}-uploader-flask-secret
+        - name: accounts
+          secret:
+            secretName: {{ include "a2rchi.fullname" . }}-accounts
+        - name: chat-data
+          persistentVolumeClaim:
+            claimName: {{ include "a2rchi.fullname" . }}-chat
+      restartPolicy: Always

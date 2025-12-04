@@ -1,22 +1,29 @@
+openaiApiKey: not-an-actual-password
+
 chat:
   port: 7024
   externalPort: 7024
+  ingress:
+    enabled: true
+
+    # add external hostname
+    hostname: a2rchi.foo.edu
+    tls:
+      enabled: true
+      # TLS for above hostname
+      secretName: a2rchi-foo-edu-els
 
   # add chat image that a2rchi built
   image: localregistry.foo.edu/a2rchi-chat:latest
 chromadb:
   # add chat image that a2rchi built  
   image: localregistry.foo.edu/chromadb:latest
-  
-ingress:
-  enabled: true
 
-  # add external hostname
-  hostname: a2rchi.foo.edu
-  tls:
-    enabled: true
-    # TLS for above hostname
-    secretName: a2rchi-foo-edu-els
+uploader:
+  image: localregistry.foo.edu/a2rchi-uploader:latest
+  port: 5001
+  externalPort: 5001
+
 postgresql:
   global:
     security:
@@ -38,7 +45,14 @@ postgresql:
   volumePermissions:
     containerSecurityContext:
       runAsUser: auto  
-
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: true
+    image:
+      repository: bitnami/postgres-exporter
+      tag: 0.17.1-debian-12-r12
+      pullPolicy: Always
 prompt:
   main: |
     You are a conversational chatbot named A2rchi who helps people navigate a computing cluster named SubMIT.
@@ -63,23 +77,8 @@ prompt:
     Standalone question:
 
 weblists:
-  submit.list:
-    - https://submit.mit.edu
-    - https://submit.mit.edu/?page_id=6
-    - https://submit.mit.edu/?page_id=7
-    - https://submit.mit.edu/?page_id=8
-    - https://submit.mit.edu/?page_id=73
-    - https://submit.mit.edu/submit-users-guide/backup.html
-    - https://submit.mit.edu/submit-users-guide/gpu.html
-    - https://submit.mit.edu/submit-users-guide/index.html
-    - https://submit.mit.edu/submit-users-guide/intro.html
-    - https://submit.mit.edu/submit-users-guide/monit.html
-    - https://submit.mit.edu/submit-users-guide/program.html
-    - https://submit.mit.edu/submit-users-guide/running.html
-    - https://submit.mit.edu/submit-users-guide/starting.html
-    - https://submit.mit.edu/submit-users-guide/storage.html
-    - https://submit.mit.edu/submit-users-guide/working.html
   miscellanea.list:
-    - https://people.csail.mit.edu/kraska
     - https://physics.mit.edu/faculty/christoph-paus
     
+ollama:
+  url: "https://ollama.foo.com"
